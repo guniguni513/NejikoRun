@@ -4,13 +4,19 @@ using UnityEngine;
 
 public class NejkoController : MonoBehaviour
 {
+    const int MinLane = -2;
+    const int MaxLane = 2;
+    const float LaneWidth = 1f;
     CharacterController controller;
     Animator animator;
     Vector3 moveDirection = Vector3.zero;
+    int targetLane;
 
     public float gravity;
     public float speedZ;
+    public float speedX;
     public float speedJump;
+    public float accelerationZ;
 
     void Start()
     {
@@ -20,28 +26,36 @@ public class NejkoController : MonoBehaviour
 
     void Update()
     {
-        if(controller.isGrounded){
-            if(Input.GetAxis("Vertical") > 0f){
-                moveDirection.z = Input.GetAxis("Vertical") * speedZ;
-            }else{
-                moveDirection.z =0;
-            }
+        if(Input.GetKeyDown("left")) MoveToLeft();
+        if(Input.GetKeyDown("right")) MoveToRight();
+        if(Input.GetKeyDown("space")) Jump();
 
-            transform.Rotate(0,Input.GetAxis("Horizontal") * 3,0);
+        float acceleratedZ=moveDirection.z +(accelerationZ*Time.deltaTime);
+        moveDirection.z = Mathf.Clamp(acceleratedZ,0,speedZ);
 
-            if(Input.GetButton("Jump")){
-                moveDirection.y=speedJump;
-                animator.SetTrigger("jump");
-            }
+        float ratioX=(targetLane * LaneWidth - transform.position.x) / LaneWidth;
+        moveDirection.x = ratioX * speedX;
 
-        }
+
         moveDirection.y -= gravity * Time.deltaTime;
         //ネジコの向きを考慮したベクトルに変換
         Vector3 globalDirection = transform.TransformDirection(moveDirection);
-        controller.Move(moveDirection*Time.deltaTime);
+        controller.Move(globalDirection*Time.deltaTime);
 
         if(controller.isGrounded) moveDirection.y = 0;
         animator.SetBool("run",moveDirection.z > 0f);
         
+    }
+    public void MoveToLeft(){
+        if(controller.isGrounded && targetLane > MinLane) targetLane--;
+    }
+    public void MoveToRight(){
+        if(controller.isGrounded && targetLane < MaxLane) targetLane++;
+    }
+    public void Jump(){
+        if(controller.isGrounded){
+            moveDirection.y = speedJump;
+            animator.SetTrigger("jump");
+        }
     }
 }
