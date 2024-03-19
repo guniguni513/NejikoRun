@@ -36,8 +36,9 @@ public class NejkoController : MonoBehaviour
 
         }
         moveDirection.y -= gravity * Time.deltaTime;
+        //ネジコの向きを考慮したベクトルに変換
         Vector3 globalDirection = transform.TransformDirection(moveDirection);
-        controller.Move(globalDirection*Time.deltaTime);
+        controller.Move(moveDirection*Time.deltaTime);
 
         if(controller.isGrounded) moveDirection.y = 0;
         animator.SetBool("run",moveDirection.z > 0f);
